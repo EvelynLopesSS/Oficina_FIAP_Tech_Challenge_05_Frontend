@@ -1,0 +1,49 @@
+name: 🚀 CI/CD - Hackathon Frontend
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  AWS_REGION: us-east-1
+  CLUSTER_NAME: hackathon-eks-cluster
+
+jobs:
+  deploy-frontend:
+    name: 🐳 Build & Deploy Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 🔐 Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: 📦 Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REPO }}
+
+      - name: 🐳 Build and Push Docker Image
+        run: |
+          docker build -t hackathon-frontend:latest .
+          docker tag hackathon-frontend:latest ${{ secrets.ECR_REPO }}:frontend-latest
+          docker push ${{ secrets.ECR_REPO }}:frontend-latest
+
+      - name: 🔌 Update Kubeconfig
+        run: aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.CLUSTER_NAME }}
+
+      - name: 🤫 Create K8s Secrets dynamically
+        run: |
+          kubectl create secret generic hackathon-frontend-secrets \
+            --from-literal=API_URL="${{ secrets.API_URL }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: 🚀 Deploy App to K8s
+        run: |
+          sed -i "s|ECR_REPO_URL_PLACEHOLDER|${{ secrets.ECR_REPO }}|g" k8s/deployment.yaml
+          kubectl apply -f k8s/
+          kubectl rollout restart deployment hackathon-frontend-deployment

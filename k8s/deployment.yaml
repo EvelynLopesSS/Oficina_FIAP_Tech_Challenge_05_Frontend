@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hackathon-frontend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hackathon-frontend
+  template:
+    metadata:
+      labels:
+        app: hackathon-frontend
+    spec:
+      containers:
+        - name: hackathon-frontend
+          image: ECR_REPO_URL_PLACEHOLDER:frontend-latest
+          ports:
+            - containerPort: 8501
+          resources:
+            requests:
+              cpu: "100m"      
+              memory: "128Mi"
+          envFrom:
+            - secretRef:
+                name: hackathon-frontend-secrets
