@@ -15,12 +15,16 @@ spec:
       containers:
         - name: hackathon-frontend
           image: ECR_REPO_URL_PLACEHOLDER:frontend-latest
+          imagePullPolicy: Always 
           ports:
             - containerPort: 8501
           resources:
             requests:
-              cpu: "100m"      
-              memory: "128Mi"
+              cpu: "250m"      
+              memory: "256Mi"
+            limits:
+              cpu: "500m"      
+              memory: "512Mi"
           envFrom:
             - secretRef:
                 name: hackathon-frontend-secrets
