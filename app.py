@@ -102,17 +102,18 @@ with st.sidebar:
                         st.error("Acesso Negado.")
                 except Exception as e:
                     st.error("Offline: API inalcançável.")
-                    
+
         with tab2:
             r_user = st.text_input("Novo ID", key="r_user")
+            r_email = st.text_input("E-mail de Contato", key="r_email") 
             r_pass = st.text_input("Nova Senha", type="password", key="r_pass")
             if st.button(">> Registrar"):
                 try:
-                    res = requests.post(f"{API_URL}/register", json={"username": r_user, "password": r_pass})
+                    res = requests.post(f"{API_URL}/register", json={"username": r_user, "email": r_email, "password": r_pass})
                     if res.status_code == 201:
                         st.success("Identidade registrada! Faça o login.")
                     else:
-                        st.error("Erro no registro.")
+                        st.error("Erro no registro. Verifique se o ID ou e-mail já existem.")
                 except Exception:
                     st.error("Offline: API inalcançável.")
     else:
