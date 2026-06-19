@@ -140,9 +140,13 @@ if st.session_state['token']:
                     if res.status_code == 202:
                         st.success("✅ Pacote injetado na Fila de Processamento Neural (SQS)!")
                     else:
-                        st.error("❌ Falha na injeção de dados.")
-                except Exception:
-                    st.error("Erro de comunicação com os servidores centrais.")
+                        try:
+                            erro_detalhado = res.json().get('error', 'Erro desconhecido na API.')
+                            st.error(f"❌ Falha no processamento: {erro_detalhado}")
+                        except:
+                            st.error(f"❌ Erro Crítico do Servidor. HTTP Status: {res.status_code}")
+                except Exception as e:
+                    st.error(f"Erro de comunicação com os servidores centrais: {e}")
         else:
             st.warning("Nenhum arquivo detectado no scanner.")
             
